@@ -28,7 +28,7 @@ func TestAttributesFromioReadCloser(t *testing.T) {
 	}
 	defer os.Remove(f.Name())
 
-	mbean, err := getAttributes(f)
+	mbean, err := getAttributes(f, getAttrUnmarshal)
 	if err != nil {
 		t.Errorf("Error reading tmp file in getAttributes: %#v\n", err)
 	}
@@ -85,5 +85,41 @@ func TestUnmarshalFunction(t *testing.T) {
 
 	if x.Attribute.Name != "Max" {
 		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
+	}
+}
+
+func TestUnmarshalFunctionMap(t *testing.T) {
+	input := `<MBean classname="org.apache.cassandra.gms.FailureDetector" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.net:type=FailureDetector">
+	<Attribute classname="java.util.Map" isnull="false" name="SimpleStates">
+		<Map length="1">
+			<Element element="UP" elementclass="java.lang.String" index="0" key="/127.0.0.1" keyclass="java.lang.String"/>
+		</Map>
+	</Attribute>
+</MBean>`
+
+	x, err := getAttrUnmarshal([]byte(input))
+	if err != nil {
+		t.Errorf("Error running GetAttrUnmarshal: %v\n", err)
+	}
+
+	if x.ObjectName != "org.apache.cassandra.net:type=FailureDetector" {
+		fmt.Printf("%#v\n", x)
+		t.Errorf("Parsing failure of objectname")
+	}
+
+	if x.Attribute.Name != "SimpleStates" {
+		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
+	}
+
+	if x.Attribute.Map.Length != "1" {
+		t.Errorf("Map Lenght incorrect: %s\n", x.Attribute.Map.Length)
+	}
+
+	e0 := x.Attribute.Map.Elements[0]
+	if e0.Element != "UP" {
+		t.Errorf("Value 'element' not 'UP': %#v", e0)
+	}
+	if e0.Key != "/127.0.0.1" {
+		t.Errorf("Key of map incorrect")
 	}
 }
