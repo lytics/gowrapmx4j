@@ -3,8 +3,40 @@ package gowrapmx4j
 import (
 	"encoding/xml"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 )
+
+func TestAttributesFromioReadCloser(t *testing.T) {
+	input := `<?xml version="1.0" encoding="UTF-8"?>
+<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=lio4,scope=node,name=ReadLatency">
+	<Attribute classname="double" isnull="false" name="Max" value="100.0"/>
+</MBean>
+`
+
+	f, err := ioutil.TempFile("/tmp", "gowrapmx4jtest-")
+	defer f.Close()
+	if err != nil {
+		t.Errorf("Failed to open temp file in /tmp/: %#v\n", err)
+	}
+
+	f.WriteString(input)
+	_, err = f.Seek(0, 0)
+	if err != nil {
+		t.Errorf("Error setting seek on tmp file: %#v", err)
+	}
+	defer os.Remove(f.Name())
+
+	mbean, err := getAttributes(f)
+	if err != nil {
+		t.Errorf("Error reading tmp file in getAttributes: %#v\n", err)
+	}
+
+	if mbean.Attribute.Name != "Max" {
+		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
+	}
+}
 
 func TestBasicUnmarshal(t *testing.T) {
 	//<?xml version="1.0" encoding="UTF-8"?>
@@ -41,7 +73,7 @@ func TestUnmarshalFunction(t *testing.T) {
 </MBean>
 `
 
-	x, err := GetAttrUnmarshal([]byte(input))
+	x, err := getAttrUnmarshal([]byte(input))
 	if err != nil {
 		t.Errorf("Error running GetAttrUnmarshal: %v\n", err)
 	}
