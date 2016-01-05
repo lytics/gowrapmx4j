@@ -1,12 +1,11 @@
 package gowrapmx4j
 
-import "encoding/xml"
-
 type MX4JMetric struct {
 	HumanName  string
 	ObjectName string
 	Format     string
 	Attribute  string
+	ValFunc    func(*MBean) map[string]string
 	MBean      *MBean
 }
 
@@ -22,29 +21,25 @@ func NewMX4JMetric(hname, objname, format, attr string) MX4JMetric {
 */
 
 type MBean struct {
-	XMLName    xml.Name      `xml:"MBean"`
 	ObjectName string        `xml:"objectname,attr"`
 	ClassName  string        `xml:"classname,attr"`
 	Attribute  MX4JAttribute `xml:"Attribute"`
 }
 
 type MX4JAttribute struct {
-	XMLName   xml.Name `xml:"Attribute"`
-	Classname string   `xml:"classname,attr"`
-	Name      string   `xml:"name,attr"`
-	Value     string   `xml:"value,attr"`
-	Map       MX4JMap  `xml:"Map"`
+	Classname string  `xml:"classname,attr"`
+	Name      string  `xml:"name,attr"`
+	Value     string  `xml:"value,attr"`
+	Map       MX4JMap `xml:"Map"`
 }
 
 type MX4JMap struct {
-	XMLName  xml.Name      `xml:"Map"`
 	Length   string        `xml:"length,attr"`
 	Elements []MX4JElement `xml:"Element"`
 }
 
 type MX4JElement struct {
-	XMLName xml.Name `xml:"Element"`
-	Key     string   `xml:"key,attr"`
-	Element string   `xml:"element,attr"` //Known as 'Value' to the rest of the world
-	Index   string   `xml:"index,attr"`
+	Key     string `xml:"key,attr"`
+	Element string `xml:"element,attr"` //Known as 'Value' to the rest of the world
+	Index   string `xml:"index,attr"`
 }
