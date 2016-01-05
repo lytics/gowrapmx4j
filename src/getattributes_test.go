@@ -10,7 +10,7 @@ import (
 
 func TestAttributesFromioReadCloser(t *testing.T) {
 	input := `<?xml version="1.0" encoding="UTF-8"?>
-<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=lio4,scope=node,name=ReadLatency">
+<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency">
 	<Attribute classname="double" isnull="false" name="Max" value="100.0"/>
 </MBean>
 `
@@ -42,7 +42,7 @@ func TestBasicUnmarshal(t *testing.T) {
 	//<?xml version="1.0" encoding="UTF-8"?>
 	input := `
 <?xml version="1.0" encoding="UTF-8"?>
-<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=lio4,scope=node,name=ReadLatency">
+<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency">
 	<Attribute classname="double" isnull="false" name="Max" value="100.0"/>
 </MBean>
 `
@@ -68,7 +68,7 @@ func TestBasicUnmarshal(t *testing.T) {
 func TestUnmarshalFunction(t *testing.T) {
 	input := `
 <?xml version="1.0" encoding="UTF-8"?>
-<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=lio4,scope=node,name=ReadLatency">
+<MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency">
 	<Attribute classname="double" isnull="false" name="Max" value="100.0"/>
 </MBean>
 `

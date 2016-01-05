@@ -38,6 +38,19 @@ func (m MX4J) QueryGetAttributes(objectname, format, attribute string) (*MBean, 
 	return getAttributes(httpResp.Body, getAttrUnmarshal)
 }
 
+func (m MX4J) QueryMX4JMetric(mm MX4JMetric) (*MBean, error) {
+	query := fmt.Sprintf("getattribute?objectname=%s&format=%s&attribute=%s&template=identity", mm.ObjectName, mm.Format, mm.Attribute) //template?
+	fullQuery := m.hostAddr + query
+	log.Debug(fullQuery)
+
+	httpResp, err := http.Get(fullQuery)
+	if err != nil {
+		log.Errorf("Failed to get response from mx4j: %#v", err)
+		return nil, err
+	}
+	return getAttributes(httpResp.Body, getAttrUnmarshal)
+}
+
 //Handles reading of the http.Body and passes bytes of io.ReadCloser
 //to getAttrUnmarshal() for unmarshaling XML.
 func getAttributes(httpBody io.ReadCloser, unmarshalFunc func([]byte) (*MBean, error)) (*MBean, error) {

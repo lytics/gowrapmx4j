@@ -2,6 +2,18 @@ package gowrapmx4j
 
 import "encoding/xml"
 
+type MX4JMetric struct {
+	HumanName  string
+	ObjectName string
+	Format     string
+	Attribute  string
+	MBean      *MBean
+}
+
+func NewMX4JMetric(hname, objname, format, attr string) MX4JMetric {
+	return MX4JMetric{HumanName: hname, ObjectName: objname, Format: format, Attribute: attr}
+}
+
 /*Example XML
 <?xml version="1.0" encoding="UTF-8"?>
 <MBean classname="com.yammer.metrics.reporting.JmxReporter$Timer" description="Information on the management interface of the MBean" objectname="org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency">
