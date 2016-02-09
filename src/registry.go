@@ -40,3 +40,15 @@ func RegistryGetAll() []MX4JMetric {
 	}
 	return metrics
 }
+
+// Return a map of MX4JMetric structs keyed by their human readable name field.
+func RegistryGetHRMap() map[string]MX4JMetric {
+	reglock.RLock()
+	defer reglock.RUnlock()
+
+	metrics := make(map[string]MX4JMetric)
+	for _, mm := range registry {
+		metrics[mm.HumanName] = *mm
+	}
+	return metrics
+}
