@@ -48,7 +48,12 @@ func (m MX4J) QueryMX4JMetric(mm MX4JMetric) (*MBean, error) {
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
 	}
-	return getAttributes(httpResp.Body, getAttrUnmarshal)
+	mb, err := getAttributes(httpResp.Body, getAttrUnmarshal)
+	if err != nil {
+		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
+		return nil, err
+	}
+	return mb, err
 }
 
 //Handles reading of the http.Body and passes bytes of io.ReadCloser
@@ -60,9 +65,7 @@ func getAttributes(httpBody io.ReadCloser, unmarshalFunc func([]byte) (*MBean, e
 		return nil, err
 	}
 
-	mb, err := unmarshalFunc(xmlBytes)
-
-	return mb, nil
+	return unmarshalFunc(xmlBytes)
 }
 
 //Unmarshals XML and returns an MBean struct
