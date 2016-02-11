@@ -2,31 +2,33 @@ package gowrapmx4j
 
 import "sync"
 
-var registry = make(map[string]*MX4JMetric)
+var registry = make(map[string]MX4JMetric)
 var reglock = &sync.RWMutex{}
 
-func RegistrySet(mm MX4JMetric, mb *MBean) {
+// Set a value in the Registry keyed to its Human Name
+func RegistrySet(mm MX4JMetric, mb MX4JData) {
 	reglock.Lock()
 	defer reglock.Unlock()
 
-	mm.MBean = mb
-	registry[mm.HumanName] = &mm
+	mm.Data = mb
+	registry[mm.HumanName] = mm
 }
 
-func RegistryGet(humanName string) *MX4JMetric {
+func RegistryGet(humanName string) MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
 
 	return registry[humanName]
 }
 
-func RegistryBeans() map[string]*MBean {
+// Return all data points in the Registry
+func RegistryBeans() map[string]MX4JData {
 	reglock.RLock()
 	defer reglock.RUnlock()
 
-	beans := make(map[string]*MBean)
+	beans := make(map[string]MX4JData)
 	for hname, mm := range registry {
-		beans[hname] = mm.MBean
+		beans[hname] = mm.Data
 	}
 	return beans
 }
@@ -36,7 +38,7 @@ func RegistryGetAll() []MX4JMetric {
 	defer reglock.RUnlock()
 	metrics := make([]MX4JMetric, 0, 0)
 	for _, mm := range registry {
-		metrics = append(metrics, *mm)
+		metrics = append(metrics, mm)
 	}
 	return metrics
 }
@@ -48,7 +50,7 @@ func RegistryGetHRMap() map[string]MX4JMetric {
 
 	metrics := make(map[string]MX4JMetric)
 	for _, mm := range registry {
-		metrics[mm.HumanName] = *mm
+		metrics[mm.HumanName] = mm
 	}
 	return metrics
 }

@@ -2,31 +2,11 @@ package gowrapmx4j
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 
 	log "github.com/Sirupsen/logrus"
 )
-
-func (m MX4J) QueryMX4JBean(mm MX4JMetric) (*Bean, error) {
-	query := fmt.Sprintf("mbean?objectname=%s&template=identity", mm.ObjectName)
-	fullQuery := m.hostAddr + query
-	log.Debug(fullQuery)
-
-	httpResp, err := http.Get(fullQuery)
-	if err != nil {
-		log.Errorf("Failed to get response from mx4j: %#v", err)
-		return nil, err
-	}
-	mb, err := getBeans(httpResp.Body, beanUnmarshal)
-	if err != nil {
-		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
-		return nil, err
-	}
-	return mb, err
-}
 
 //Handles reading of the http.Body and passes bytes of io.ReadCloser
 //to getAttrUnmarshal() for unmarshaling XML.

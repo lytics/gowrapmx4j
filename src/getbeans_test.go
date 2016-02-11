@@ -29,7 +29,7 @@ func TestUnmarshallingFunctions(t *testing.T) {
 		t.Errorf("Error unmarshalling: %v\n", err)
 	}
 
-	if len(b.Attributes) < 50 {
+	if len(b.Attributes) < 5 {
 		t.Errorf("Seems like number of Attributes unmarshalled is a little low..\n%#v\n", b.Attributes)
 	}
 }
