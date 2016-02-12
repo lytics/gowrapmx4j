@@ -48,6 +48,7 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	log.Debug(fullQuery)
 
 	httpResp, err := http.Get(fullQuery)
+	defer httpResp.Body.Close()
 	if err != nil {
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
@@ -79,6 +80,7 @@ func (mbean MBean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	log.Debug(fullQuery)
 
 	httpResp, err := http.Get(fullQuery)
+	defer httpResp.Body.Close()
 	if err != nil {
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
