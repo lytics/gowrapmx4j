@@ -2,6 +2,7 @@ package gowrapmx4j
 
 import (
 	"encoding/xml"
+	"fmt"
 	"testing"
 )
 
@@ -29,6 +30,10 @@ func TestUnmarshallingFunctions(t *testing.T) {
 		t.Errorf("Error unmarshalling: %v\n", err)
 	}
 
+	//fmt.Printf("%#v\n", b)
+	for _, x := range b.Attributes {
+		fmt.Printf("%s %s\n", x.Name, x.Value)
+	}
 	if len(b.Attributes) < 5 {
 		t.Errorf("Seems like number of Attributes unmarshalled is a little low..\n%#v\n", b.Attributes)
 	}

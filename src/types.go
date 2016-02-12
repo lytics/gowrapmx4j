@@ -18,6 +18,7 @@ type MX4JMetric struct {
 	Format     string
 	Attribute  string
 	ValFunc    func(MX4JData) map[string]string
+	MetricFunc func(MX4JData, string)
 	Data       MX4JData
 }
 
