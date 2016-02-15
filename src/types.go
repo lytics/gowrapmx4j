@@ -8,10 +8,15 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// MX4JData interface requires the QueryMX4J() which makes http request to MX4J
+// to extract data given the type implmenting the interface.
 type MX4JData interface {
 	QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error)
 }
 
+// MX4JMetrics assists in deriving information from the extracted MX4JData structs
+// Optional functions can be assigned to the MX4JMetric to be run on the underlying
+// MX4JData type.
 type MX4JMetric struct {
 	HumanName  string
 	ObjectName string
@@ -22,11 +27,13 @@ type MX4JMetric struct {
 	Data       MX4JData
 }
 
+// NewMX4JMetric provides requires common init arguments for single attribute MBean data struct
 func NewMX4JMetric(hname, objname, format, attr string) MX4JMetric {
 	return MX4JMetric{HumanName: hname, ObjectName: objname, Format: format, Attribute: attr}
 }
 
-// AKA Whole Bean of data
+// Bean struct implements querying a full map of data points based on the ObjectName of the
+// attributes. A map of attributes can be returned for selective use by Bean.AttributeMap().
 type Bean struct {
 	XMLName    xml.Name        `xml:"MBean"`
 	ObjectName string          `xml:"objectname,attr"`
@@ -68,6 +75,8 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 </MBean>
 */
 
+// MBean is used to return a single Composite Key: Value MX4J Data attribute
+// To query MX4J; ObjectName, Format, and Attribute must be specified.
 type MBean struct {
 	ObjectName string        `xml:"objectname,attr"`
 	ClassName  string        `xml:"classname,attr"`
@@ -93,6 +102,8 @@ func (mbean MBean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	return *mb, err
 }
 
+// MX4JAttribute is the underlying data structure which is unmarshalled to expose
+// the actual data from MX4J.
 type MX4JAttribute struct {
 	Classname string  `xml:"classname,attr"`
 	Name      string  `xml:"name,attr"`
@@ -105,6 +116,8 @@ type MX4JMap struct {
 	Elements []MX4JElement `xml:"Element"`
 }
 
+// MX4JElement is the MX4J representation of Key-Value pairs renamed to be confusing as
+// Key-Element pairs. Struct allows for maps to be unmarshalled.
 type MX4JElement struct {
 	Key     string `xml:"key,attr"`
 	Element string `xml:"element,attr"` //Known as 'Value' to the rest of the world
