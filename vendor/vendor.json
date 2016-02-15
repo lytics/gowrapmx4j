@@ -1,0 +1,11 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "cdd90c38c6e3718c731b555b9c3ed1becebec3ba",
+			"revisionTime": "2015-03-31T11:30:41-04:00"
+		}
+	]
+}
