@@ -55,11 +55,12 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	log.Debug(fullQuery)
 
 	httpResp, err := http.Get(fullQuery)
-	defer httpResp.Body.Close()
 	if err != nil {
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
 	}
+	defer httpResp.Body.Close()
+
 	mb, err := getBeans(httpResp.Body, beanUnmarshal)
 	if err != nil {
 		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
@@ -89,11 +90,12 @@ func (mbean MBean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	log.Debug(fullQuery)
 
 	httpResp, err := http.Get(fullQuery)
-	defer httpResp.Body.Close()
 	if err != nil {
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
 	}
+	defer httpResp.Body.Close()
+
 	mb, err := getAttributes(httpResp.Body, getAttrUnmarshal)
 	if err != nil {
 		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
