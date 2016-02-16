@@ -1,6 +1,10 @@
 package gowrapmx4j
 
-import "sync"
+import (
+	"sync"
+
+	log "github.com/Sirupsen/logrus"
+)
 
 var registry = make(map[string]MX4JMetric)
 var reglock = &sync.RWMutex{}
@@ -9,6 +13,7 @@ var reglock = &sync.RWMutex{}
 func RegistrySet(mm MX4JMetric, mb MX4JData) {
 	reglock.Lock()
 	defer reglock.Unlock()
+	log.Debugf("RegistrySet: %s", mm.HumanName)
 
 	mm.Data = mb
 	registry[mm.HumanName] = mm
@@ -53,4 +58,31 @@ func RegistryGetHRMap() map[string]MX4JMetric {
 		metrics[mm.HumanName] = mm
 	}
 	return metrics
+}
+
+// Purge the gowrapmx4j data registry
+// Primarily for use in the case where connection to MX4J has been lost,
+// and reporting stale data is unhelpful. Endpoints will need to be re-registered
+// in order for data collection to continue.
+func RegistryPurge() {
+	reglock.Lock()
+	defer reglock.Unlock()
+
+	// Replace the registry with a new map
+	registry = make(map[string]MX4JMetric)
+}
+
+// RegistryFlush resets the MX4JMetric.Data fields for all registered metrics.
+// If connection to MX4J is lost this can be called to remove stale data but keep the
+// metric handles for when MX4J recovers.
+func RegistryFlush() {
+	reglock.Lock()
+	defer reglock.Unlock()
+
+	// Replace the registry with a new map
+	for k, mm := range registry {
+		log.Debugf("Blanking gowrapmx4j.registry data of %s", k)
+		mm.Data = nil
+		registry[mm.HumanName] = mm
+	}
 }
