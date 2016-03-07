@@ -15,11 +15,23 @@
 /*
 gowrapmx4j is a base library of types to assist UnMarshalling and Querying MX4J data.
 
-MX4J is a very useful layer which makes JMX accessible via HTTP. Unfortunately little is done to
-improve the data's representation and it is returned as raw XML via an API frought with perilous
+MX4J is a very useful service which makes JMX data accessible via HTTP. Unfortunately little is done to
+improve the data's representation and it is returned as dense raw XML via an API frought with perilous
 query variables which are poorly documented.
 
-The types and unmarshalling structures defined here have sorted out some of the XML maddness
-returned from MX4J and operating on (slightly)more sensible data structures easier.
+The types and unmarshalling structures defined here have sorted out some of the XML saddness
+returned from MX4J and makes it easier to operate on the data stuctures.
+
+Basic Primer:
+The Registry is a concurrent safe map of MX4J data which is updated when queries are made.
+This is to reduce the number of calls to MX4J if multiple goroutines want to access the data.
+
+MX4J Unmarshalling types:
+Sadly MX4J likes to reuse XML tag names despite different data structures.
+eg: XML "MBean" tag. This leaves few options to keep the library's API clean and readable.
+
+Type: "Bean"; a root level Map of MX4JAttributes
+Type: "MBean"; a single effective MX4J variable path has a nested K-V data type
+
 */
 package gowrapmx4j

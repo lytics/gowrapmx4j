@@ -8,6 +8,34 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+//Struct representing MX4J address to query
+type MX4J struct {
+	Host     string
+	Port     string
+	hostAddr string
+}
+
+func (m *MX4J) Init() {
+	m.hostAddr = fmt.Sprintf("http://%s:%s/", m.Host, m.Port)
+}
+
+// Queries MX4J to get an attribute's data, returns Bean struct or error
+// equivalent to http://hostname:port/getattribute?queryargs...
+// eg: "http://localhost:8081/getattribute?objectname=org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency&format=array&attribute=Max&template=identity"
+func (m MX4J) QueryGetAttributes(objectname, format, attribute string) (*Bean, error) {
+
+	query := fmt.Sprintf("getattribute?objectname=%s&format=%s&attribute=%s&template=identity", objectname, format, attribute) //template?
+	fullQuery := m.hostAddr + query
+	log.Debug(fullQuery)
+
+	httpResp, err := http.Get(fullQuery)
+	if err != nil {
+		log.Errorf("Failed to get response from mx4j: %#v", err)
+		return nil, err
+	}
+	return getBeans(httpResp.Body, beanUnmarshal)
+}
+
 // MX4JData interface requires the QueryMX4J() which makes http request to MX4J
 // to extract data given the type implmenting the interface.
 type MX4JData interface {
@@ -78,6 +106,7 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 
 // MBean is used to return a single Composite Key: Value MX4J Data attribute
 // To query MX4J; ObjectName, Format, and Attribute must be specified.
+/*
 type MBean struct {
 	ObjectName string        `xml:"objectname,attr"`
 	ClassName  string        `xml:"classname,attr"`
@@ -103,6 +132,7 @@ func (mbean MBean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 	}
 	return *mb, err
 }
+*/
 
 // MX4JAttribute is the underlying data structure which is unmarshalled to expose
 // the actual data from MX4J.
