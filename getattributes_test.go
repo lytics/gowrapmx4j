@@ -28,12 +28,13 @@ func TestAttributesFromioReadCloser(t *testing.T) {
 	}
 	defer os.Remove(f.Name())
 
-	mbean, err := getAttributes(f, getAttrUnmarshal)
+	mbean, err := getBeans(f, beanUnmarshal)
 	if err != nil {
 		t.Errorf("Error reading tmp file in getAttributes: %#v\n", err)
 	}
 
-	if mbean.Attribute.Name != "Max" {
+	attr0 := mbean.Attributes[0]
+	if attr0.Name != "Max" {
 		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
 	}
 }
@@ -47,7 +48,7 @@ func TestBasicUnmarshal(t *testing.T) {
 </MBean>
 `
 
-	x := MBean{ObjectName: "neh"}
+	x := Bean{ObjectName: "neh"}
 
 	err := xml.Unmarshal([]byte(input), &x)
 	if err != nil {
@@ -59,7 +60,7 @@ func TestBasicUnmarshal(t *testing.T) {
 		t.Errorf("Incorrect default value not overwritten.")
 	}
 
-	if x.Attribute.Name != "Max" {
+	if x.Attributes[0].Name != "Max" {
 		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
 	}
 
@@ -73,7 +74,7 @@ func TestUnmarshalFunction(t *testing.T) {
 </MBean>
 `
 
-	x, err := getAttrUnmarshal([]byte(input))
+	x, err := beanUnmarshal([]byte(input))
 	if err != nil {
 		t.Errorf("Error running GetAttrUnmarshal: %v\n", err)
 	}
@@ -83,7 +84,7 @@ func TestUnmarshalFunction(t *testing.T) {
 		t.Errorf("Incorrect default value not overwritten.")
 	}
 
-	if x.Attribute.Name != "Max" {
+	if x.Attributes[0].Name != "Max" {
 		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
 	}
 }
@@ -97,7 +98,7 @@ func TestUnmarshalFunctionMap(t *testing.T) {
 	</Attribute>
 </MBean>`
 
-	x, err := getAttrUnmarshal([]byte(input))
+	x, err := beanUnmarshal([]byte(input))
 	if err != nil {
 		t.Errorf("Error running GetAttrUnmarshal: %v\n", err)
 	}
@@ -107,15 +108,15 @@ func TestUnmarshalFunctionMap(t *testing.T) {
 		t.Errorf("Parsing failure of objectname")
 	}
 
-	if x.Attribute.Name != "SimpleStates" {
+	if x.Attributes[0].Name != "SimpleStates" {
 		t.Errorf("Attribute 'Name' was not unmarshalled correctly")
 	}
 
-	if x.Attribute.Map.Length != "1" {
-		t.Errorf("Map Lenght incorrect: %s\n", x.Attribute.Map.Length)
+	if x.Attributes[0].Map.Length != "1" {
+		t.Errorf("Map Lenght incorrect: %s\n", x.Attributes[0].Map.Length)
 	}
 
-	e0 := x.Attribute.Map.Elements[0]
+	e0 := x.Attributes[0].Map.Elements[0]
 	if e0.Element != "UP" {
 		t.Errorf("Value 'element' not 'UP': %#v", e0)
 	}
