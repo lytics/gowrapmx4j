@@ -5,13 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"reflect"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lytics/gowrapmx4j"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/ropes/katoptron"
 )
 
 var (
@@ -79,29 +77,6 @@ func PercentileClean(mb gowrapmx4j.MX4JData) map[string]string {
 	default:
 		return map[string]string{"ERR": "Unable to get type of MX4J Data"}
 	}
-}
-
-// ExtractAttributes parses the queried MX4JMetric endpoints and yields
-// a map of metric fields which can be marshalled cleanly into JSON.
-func ExtractAttributes(mb gowrapmx4j.MX4JData) map[string]string {
-	data := make(map[string]string)
-
-	katoptron.Display("Bean", reflect.ValueOf(mb))
-	//log.Infof("%v", reflect.TypeOf(mb))
-	switch mb.(type) {
-	case *gowrapmx4j.Bean:
-		x := mb.(*gowrapmx4j.Bean)
-		for _, attr := range x.Attributes {
-			log.Debugf("%s %s", attr.Name, attr.Value)
-			if attr.Value != "" {
-				data[attr.Name] = attr.Value
-			}
-		}
-		return data
-	default:
-		return map[string]string{"ERR": "extractAttributes: Unknown type of MX4J Data"}
-	}
-
 }
 
 // Cassandra MX4J status endpoint
@@ -181,13 +156,13 @@ func main() {
 	// Query MBean attribute maps
 	mname := "compactionExecutor"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.internal:type=CompactionExecutor", "", "")
-	mm.ValFunc = ExtractAttributes
+	mm.ValFunc = gowrapmx4j.ExtractAttributes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Query Cluster information
 	mname = "StorageService"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.db:type=StorageService", "", "")
-	mm.ValFunc = ExtractAttributes
+	mm.ValFunc = gowrapmx4j.ExtractAttributes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	go func() {

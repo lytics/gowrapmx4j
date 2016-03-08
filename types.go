@@ -107,10 +107,12 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 // MX4JAttribute is the underlying data structure which is unmarshalled to expose
 // the actual data from MX4J.
 type MX4JAttribute struct {
-	Classname string  `xml:"classname,attr"`
-	Name      string  `xml:"name,attr"`
-	Value     string  `xml:"value,attr"`
-	Map       MX4JMap `xml:"Map"`
+	Classname   string  `xml:"classname,attr"`
+	Name        string  `xml:"name,attr"`        // Effective Key
+	Value       string  `xml:"value,attr"`       // Always encoded as a string...
+	Aggregation string  `xml:"aggregation,attr"` // "map"-> map; "collection"-> array
+	JavaType    string  `xml:"type,attr"`
+	Map         MX4JMap `xml:"Map"`
 }
 
 type MX4JMap struct {
