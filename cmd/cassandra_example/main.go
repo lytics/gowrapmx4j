@@ -31,7 +31,7 @@ func QueryMX4J(mx4j gowrapmx4j.MX4J) (*[]gowrapmx4j.MX4JMetric, error) {
 		var newData gowrapmx4j.MX4JData
 		var err error
 		data := mm.Data
-		log.Debugf("Metric being queried:\n %#v\n", mm)
+		log.Debugf("Metric being queried: %#v", mm)
 
 		// If first time querying endpoint, create data struct
 		if data == nil {
@@ -68,17 +68,6 @@ func QueryMX4J(mx4j gowrapmx4j.MX4J) (*[]gowrapmx4j.MX4JMetric, error) {
 	return &updated, nil
 }
 
-// Cleanly extracts the name and value from a singleton MX4J Bean struct
-func PercentileClean(mb gowrapmx4j.MX4JData) map[string]string {
-	switch mb.(type) {
-	case *gowrapmx4j.Bean:
-		x := mb.(*gowrapmx4j.Bean)
-		return map[string]string{x.Attributes[0].Name: x.Attributes[0].Value}
-	default:
-		return map[string]string{"ERR": "Unable to get type of MX4J Data"}
-	}
-}
-
 // Cassandra MX4J status endpoint
 func cassStatus(w http.ResponseWriter, r *http.Request) {
 	metrics, err := QueryMX4J(mx4j)
@@ -106,7 +95,12 @@ func cleanStatus(w http.ResponseWriter, r *http.Request) {
 	for _, m := range metrics {
 		if m.ValFunc != nil {
 			log.Infof("%s", m.HumanName)
-			mjs[m.HumanName] = m.ValFunc(m.Data)
+			mdata, err := m.ValFunc(m.Data)
+			if err != nil {
+				log.Errorf("Error running value function for %s: %v", m.HumanName, err)
+				continue
+			}
+			mjs[m.HumanName] = mdata
 		} else {
 			mjs[m.HumanName] = m.Data
 		}
@@ -129,7 +123,7 @@ func main() {
 	flag.IntVar(&queryInterval, "queryInterval", 10, "Interval seconds between querying MX4J")
 	flag.Parse()
 
-	//TODO: Sort out your metrics endpoint
+	//TODO: Sort out metrics writer
 	//mlog := golog.New(os.Stderr, "", golog.LstdFlags)
 	//go LogToWriter(metrics.DefaultRegistry, time.Second*time.Duration(queryInterval), mlog, gprefix, stop)
 
@@ -146,23 +140,24 @@ func main() {
 
 	//Pull singlenton values from MX4J
 	mm := gowrapmx4j.NewMX4JMetric("compactions.active", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "ActiveCount")
-	mm.ValFunc = PercentileClean
+	mm.ValFunc = gowrapmx4j.AttributeClean
 	gowrapmx4j.RegistrySet(mm, nil)
+
 	mm = gowrapmx4j.NewMX4JMetric("compactions.pending", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "PendingTasks")
-	mm.ValFunc = PercentileClean
+	mm.ValFunc = gowrapmx4j.AttributeClean
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	//OR
 	// Query MBean attribute maps
 	mname := "compactionExecutor"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.internal:type=CompactionExecutor", "", "")
-	mm.ValFunc = gowrapmx4j.ExtractAttributes
+	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Query Cluster information
 	mname = "StorageService"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.db:type=StorageService", "", "")
-	mm.ValFunc = gowrapmx4j.ExtractAttributes
+	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	go func() {

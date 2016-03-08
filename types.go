@@ -50,7 +50,7 @@ type MX4JMetric struct {
 	ObjectName string
 	Format     string
 	Attribute  string
-	ValFunc    func(MX4JData) map[string]string
+	ValFunc    func(MX4JData) (map[string]interface{}, error)
 	MetricFunc func(MX4JData, string)
 	Data       MX4JData
 }
