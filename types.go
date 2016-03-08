@@ -8,7 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-//Struct representing MX4J address to query
+//Struct representing MX4J service address information to query against
 type MX4J struct {
 	Host     string
 	Port     string
@@ -23,7 +23,6 @@ func (m *MX4J) Init() {
 // equivalent to http://hostname:port/getattribute?queryargs...
 // eg: "http://localhost:8081/getattribute?objectname=org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency&format=array&attribute=Max&template=identity"
 func (m MX4J) QueryGetAttributes(objectname, format, attribute string) (*Bean, error) {
-
 	query := fmt.Sprintf("getattribute?objectname=%s&format=%s&attribute=%s&template=identity", objectname, format, attribute) //template?
 	fullQuery := m.hostAddr + query
 	log.Debug(fullQuery)

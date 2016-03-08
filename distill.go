@@ -2,12 +2,18 @@ package gowrapmx4j
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
 )
 
-var AttributeError = errors.New("gowrapmx4j: Attribute parsing error")
+/*From Google: Distill eventually came to mean any process in which the essence of something is revealed. If you take notes at a lecture and then turn them into an essay for your professor, you're distilling your notes into something more pure and exact. At least, that's what you hope you're doing.
+
+This code aids in the process of cleaning up the data structures marshalled from MX4J data into cleaner representations which nicely format into JSON endpoints.
+*/
+
+var DistillError = errors.New("gowrapmx4j: Attribute parsing error")
 
 func removeBrackets(s string) string {
 	return strings.TrimPrefix(strings.TrimSuffix(s, "]"), "[")
@@ -43,7 +49,7 @@ func parseMap(s string) map[string]interface{} {
 }
 
 // Cleanly extracts the name and value from a singleton MX4J Bean struct
-func AttributeClean(mb MX4JData) (map[string]interface{}, error) {
+func DistillAttribute(mb MX4JData) (map[string]interface{}, error) {
 	dataMap := make(map[string]interface{})
 	switch mb.(type) {
 	case *Bean:
@@ -57,7 +63,7 @@ func AttributeClean(mb MX4JData) (map[string]interface{}, error) {
 
 // ExtractAttributes parses the queried MX4JMetric endpoints and yields
 // a map of metric fields to their original string values.
-func ExtractAttributes(mb MX4JData) map[string]string {
+func DistillAttributes(mb MX4JData) map[string]string {
 	data := make(map[string]string)
 
 	switch mb.(type) {
@@ -78,7 +84,7 @@ func ExtractAttributes(mb MX4JData) map[string]string {
 
 // ExtractAtributeTypes parses Bean struct []Attributes data and returns
 // map parsed from attribute information which can be marsahlled into JSON.
-func ExtractAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
+func DistillAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
 	attributes := make(map[string]interface{})
 
 	switch mb.(type) {
@@ -99,6 +105,8 @@ func ExtractAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
 				attributes[attr.Name] = parseArray(attr.Value)
 			case "map":
 				attributes[attr.Name] = parseMap(attr.Value)
+			default:
+				attributes[attr.Name] = fmt.Sprintf("Unhandled aggregation type: %s", attr.Aggregation)
 			}
 		}
 		return attributes, nil

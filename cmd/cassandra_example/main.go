@@ -69,7 +69,8 @@ func QueryMX4J(mx4j gowrapmx4j.MX4J) (*[]gowrapmx4j.MX4JMetric, error) {
 	return &updated, nil
 }
 
-// Cassandra MX4J status endpoint
+// Cassandra MX4J status returns all data from the gowrapmx4j.registry
+// in its raw form marshalled into JSON.
 func cassStatus(w http.ResponseWriter, r *http.Request) {
 	metrics, err := QueryMX4J(mx4j)
 	if err != nil {
@@ -118,7 +119,7 @@ func cleanStatus(w http.ResponseWriter, r *http.Request) {
 func nodeStatus(w http.ResponseWriter, r *http.Request) {
 	mjs := make(map[string]interface{})
 	nsb := gowrapmx4j.RegistryGet("NodeStatusBinary")
-	metricMap, err := gowrapmx4j.ExtractAttributeTypes(nsb.Data)
+	metricMap, err := gowrapmx4j.DistillAttributeTypes(nsb.Data)
 	if err != nil {
 		mjs["ERR"] = "Error extracting node status data"
 		mjs["error"] = fmt.Sprintf("%v", err)
@@ -174,38 +175,41 @@ func main() {
 		log.SetLevel(ll)
 	}
 
-	//Pull singlenton values from MX4J
+	// Query singlenton values from MX4J
 	mm := gowrapmx4j.NewMX4JMetric("compactions.active", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "ActiveCount")
-	mm.ValFunc = gowrapmx4j.AttributeClean
+	mm.ValFunc = gowrapmx4j.DistillAttribute
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	mm = gowrapmx4j.NewMX4JMetric("compactions.pending", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "PendingTasks")
-	mm.ValFunc = gowrapmx4j.AttributeClean
+	mm.ValFunc = gowrapmx4j.DistillAttribute
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	//OR
 	// Query MBean attribute maps
 	mname := "NodeStatusBinary"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.net:type=FailureDetector", "", "")
-	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
+	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	mname = "CompactionExecutor"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.internal:type=CompactionExecutor", "", "")
-	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
+	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Query Cluster information
 	mname = "StorageService"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.db:type=StorageService", "", "")
-	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
+	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Simple run loop to query MX4J
 	go func() {
 		for {
-			log.Info("Querying MX4J")
-			QueryMX4J(mx4j)
+			log.Debug("Querying MX4J")
+			_, err := QueryMX4J(mx4j)
+			if err != nil {
+				log.Errorf("Error Querying MX4J: %v", err)
+			}
 			time.Sleep(time.Second * time.Duration(queryInterval))
 		}
 	}()

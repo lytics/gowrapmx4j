@@ -22,15 +22,22 @@ query variables which are poorly documented.
 The types and unmarshalling structures defined here have sorted out some of the XML saddness
 returned from MX4J and makes it easier to operate on the data stuctures.
 
-Basic Primer:
+Basic API Primer:
+Types* are the basic structs created to aid interaction/querying MX4J, unmarshall data from
+XML endpoints.
+
 The Registry is a concurrent safe map of MX4J data which is updated when queries are made.
 This is to reduce the number of calls to MX4J if multiple goroutines want to access the data.
 
-MX4J Unmarshalling types:
-Sadly MX4J likes to reuse XML tag names despite different data structures.
-eg: XML "MBean" tag. This leaves few options to keep the library's API clean and readable.
+The Distill* API aids in cleaning up the data structures created from unmarshalling the
+XML API. DistillAttribute and DistillAttributeTypes are the main functions which return
+clean data structures for http endpoints.
 
-Bean type; the root metric type which contains many MX4JAttributes
-
+Example:
+  gowrapmx4j/cmd/cassandra_example/main.go
+Showcases some ways to use features of gowrapmx4j
+	Registry usage(registering endpoints, updating, and consumption)
+	Wrapping the MX4J endpoint to update the registry
+	Custom http JSON endpoints to expose JMX data cleanly!
 */
 package gowrapmx4j

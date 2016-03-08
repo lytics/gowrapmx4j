@@ -19,6 +19,7 @@ func RegistrySet(mm MX4JMetric, mb MX4JData) {
 	registry[mm.HumanName] = mm
 }
 
+// Return a single MX4JMetric keyed by its human readable name
 func RegistryGet(humanName string) MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
@@ -38,6 +39,7 @@ func RegistryBeans() map[string]MX4JData {
 	return beans
 }
 
+// Return a slice of all MX4JMetrics currently registered
 func RegistryGetAll() []MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
