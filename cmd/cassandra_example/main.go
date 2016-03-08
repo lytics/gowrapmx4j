@@ -184,6 +184,12 @@ func main() {
 	mm.ValFunc = ExtractAttributes
 	gowrapmx4j.RegistrySet(mm, nil)
 
+	// Query Cluster information
+	mname = "StorageService"
+	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.db:type=StorageService", "", "")
+	mm.ValFunc = ExtractAttributes
+	gowrapmx4j.RegistrySet(mm, nil)
+
 	go func() {
 		for {
 			log.Info("Querying MX4J")
