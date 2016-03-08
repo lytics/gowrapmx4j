@@ -30,8 +30,7 @@ MX4J Unmarshalling types:
 Sadly MX4J likes to reuse XML tag names despite different data structures.
 eg: XML "MBean" tag. This leaves few options to keep the library's API clean and readable.
 
-Type: "Bean"; a root level Map of MX4JAttributes
-Type: "MBean"; a single effective MX4J variable path has a nested K-V data type
+Bean type; the root metric type which contains many MX4JAttributes
 
 */
 package gowrapmx4j

@@ -104,36 +104,6 @@ func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
 </MBean>
 */
 
-// MBean is used to return a single Composite Key: Value MX4J Data attribute
-// To query MX4J; ObjectName, Format, and Attribute must be specified.
-/*
-type MBean struct {
-	ObjectName string        `xml:"objectname,attr"`
-	ClassName  string        `xml:"classname,attr"`
-	Attribute  MX4JAttribute `xml:"Attribute"`
-}
-
-func (mbean MBean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
-	query := fmt.Sprintf("getattribute?objectname=%s&format=%s&attribute=%s&template=identity", mm.ObjectName, mm.Format, mm.Attribute) //template?
-	fullQuery := m.hostAddr + query
-	log.Debug(fullQuery)
-
-	httpResp, err := http.Get(fullQuery)
-	if err != nil {
-		log.Errorf("Failed to get response from mx4j: %#v", err)
-		return nil, err
-	}
-	defer httpResp.Body.Close()
-
-	mb, err := getAttributes(httpResp.Body, getAttrUnmarshal)
-	if err != nil {
-		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
-		return nil, err
-	}
-	return *mb, err
-}
-*/
-
 // MX4JAttribute is the underlying data structure which is unmarshalled to expose
 // the actual data from MX4J.
 type MX4JAttribute struct {
