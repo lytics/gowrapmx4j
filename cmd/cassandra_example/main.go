@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -114,6 +115,41 @@ func cleanStatus(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", js)
 }
 
+func nodeStatus(w http.ResponseWriter, r *http.Request) {
+	mjs := make(map[string]interface{})
+	nsb := gowrapmx4j.RegistryGet("NodeStatusBinary")
+	metricMap, err := gowrapmx4j.ExtractAttributeTypes(nsb.Data)
+	if err != nil {
+		mjs["ERR"] = "Error extracting node status data"
+		mjs["error"] = fmt.Sprintf("%v", err)
+	}
+
+	states, ok := metricMap["SimpleStates"]
+	log.Debugf("%#v", states)
+	if !ok {
+		mjs["ERR"] = "Error extracting node status data"
+		mjs["error"] = "Key: SimpleStates not in data map"
+	}
+	ss := states.(map[string]interface{})
+
+	var hostKey string
+	for k, v := range ss {
+		log.Debug("Nodestatus: %s %#v", k, v)
+		hostMatch := regexp.MustCompile(fmt.Sprintf(".*%s.*", hostnameid))
+		if hostMatch.MatchString(k) {
+			hostKey = k
+		}
+	}
+
+	mjs[hostKey] = ss[hostKey]
+	js, err := json.Marshal(mjs)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("nodeStatus: Error marshaling JSON from MX4J data: %#v", err), 500)
+	}
+	fmt.Fprintf(w, "%s", js)
+}
+
 func main() {
 	flag.StringVar(&host, "host", "localhost", "mx4j host address")
 	flag.StringVar(&port, "port", "8081", "mx4j port to query")
@@ -149,7 +185,12 @@ func main() {
 
 	//OR
 	// Query MBean attribute maps
-	mname := "compactionExecutor"
+	mname := "NodeStatusBinary"
+	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.net:type=FailureDetector", "", "")
+	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
+	gowrapmx4j.RegistrySet(mm, nil)
+
+	mname = "CompactionExecutor"
 	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.internal:type=CompactionExecutor", "", "")
 	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
@@ -160,6 +201,7 @@ func main() {
 	mm.ValFunc = gowrapmx4j.ExtractAttributeTypes
 	gowrapmx4j.RegistrySet(mm, nil)
 
+	// Simple run loop to query MX4J
 	go func() {
 		for {
 			log.Info("Querying MX4J")
@@ -170,5 +212,6 @@ func main() {
 
 	http.HandleFunc("/", cassStatus)
 	http.HandleFunc("/clean", cleanStatus)
+	http.HandleFunc("/status", nodeStatus)
 	http.ListenAndServe(":8082", nil)
 }

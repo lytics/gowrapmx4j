@@ -85,7 +85,7 @@ func ExtractAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
 	case *Bean:
 		b := mb.(*Bean)
 		for _, attr := range b.Attributes {
-			log.Info(attr)
+			log.Debug(attr)
 
 			strippedVal := removeBrackets(removeBraces(attr.Value))
 			if strippedVal == "" {
