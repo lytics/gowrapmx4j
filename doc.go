@@ -22,7 +22,16 @@ query variables which are poorly documented.
 The types and unmarshalling structures defined here have sorted out some of the XML saddness
 returned from MX4J and makes it easier to operate on the data stuctures.
 
+Why?
+Java databases are still industry standard and there's a lot of mindshare built around them. Sadly their tools
+can be very arcane or non-existant. This library is built specifically to help surface useful
+information from Cassandra's MX4J endpoint to assist in debugging, monitoring, and management.
+
+	A JSON API running in sidecar to MX4J is far more human readable, consumeable, and easier to
+	engage with other services.
+
 Basic API Primer:
+
 Types* are the basic structs created to aid interaction/querying MX4J, unmarshall data from
 XML endpoints.
 

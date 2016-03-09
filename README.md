@@ -3,11 +3,46 @@ Go Wrap MX4J
 
 [![GoDoc](https://godoc.org/github.com/lytics/gowrapmx4?status.svg)](https://godoc.org/github.com/lytics/gowrapmx4j)
 
-Golang wrapper package for accesssing MX4J HTTP data. JMX is useful but horrible, MX4J provides an HTTP endpoint to access JMX data but is shrouded in misleading documentation and odd XML data structures.
+gowrapmx4j is a base library of types to assist UnMarshalling and Querying MX4J data.
 
-This library aims ease interfacing with MX4J to extract useful information about your Java process. MX4J/JMX like to reuse XML tag names which can make coming up with a descriptive Go types a bit difficult and is an ongoing process for the library. 
+MX4J is a very useful service which makes JMX data accessible via HTTP. Unfortunately little is done to
+improve the data's representation and it is returned as dense raw XML via an API frought with perilous
+query variables which are poorly documented.
 
- ...More to come. Hopefully will provide a useful example usage soon.
+The types and unmarshalling structures defined here have sorted out some of the XML saddness
+returned from MX4J and makes it easier to operate on the data stuctures.
+
+### Why
+Java databases are still industry standard and there's a lot of mindshare built around them. Sadly their tools
+can be very arcane or non-existant. This library is built specifically to help surface useful
+information from Cassandra's MX4J endpoint to assist in debugging, monitoring, and management.
+
+A JSON API running in sidecar is far more human readable, consume, and engage with other services. 
+
+### Basic API Primer
+
+Types `types.go` are the basic structs created to aid interaction/querying MX4J, unmarshall data from
+XML endpoints.
+
+The Registry `registry.go` is a concurrent safe map of MX4J data which is updated when queries are made.
+This is to reduce the number of calls to MX4J if multiple goroutines want to access the data.
+
+The Distill `distill.go` API aids in cleaning up the data structures created from unmarshalling the
+XML API. DistillAttribute and DistillAttributeTypes are the main functions which return
+clean data structures for http endpoints.
+
+### Where to start
+An example web service which operates in a sidecar pattern to the Cassandra/MX4J services provides nice
+example usage: `gowrapmx4j/cmd/cassandra_example/main.go`
+
+Showcases gowrapmx4j components:  
+
+* Registry usage(registering endpoints, updating, and consumption)
+* Wrapping the MX4J endpoint to update the registry
+* Custom http JSON endpoints to expose JMX data cleanly!
+
+### TODO:
+* Metrics examples; currently the metric functionality isn't showcased however it is possible and creating useful keyspace level metrics for production environments. 
 
 ### External Requirements
 [Logrus](https://github.com/Sirupsen/logrus); for nice log handling.

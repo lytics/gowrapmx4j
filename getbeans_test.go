@@ -4,8 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"testing"
-
-	"github.com/ropes/katoptron"
 )
 
 var rawBean = `<?xml version="1.0" encoding="UTF-8"?>
@@ -69,7 +67,7 @@ func TestInterfaceAttributes(t *testing.T) {
 		t.Errorf("Error unmarshalling: %v\n", err)
 	}
 
-	katoptron.Display("MBean", bean)
-	katoptron.Display("MBean", *b)
-
+	// Enable for helpfull debugging
+	//katoptron.Display("MBean", bean)
+	//katoptron.Display("MBean", *b)
 }
