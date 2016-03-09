@@ -62,7 +62,7 @@ func TestInterfaceAttributes(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error unmarshalling MX4J data: %v", err)
 	}
-	b, err := beanUnmarshal([]byte(rawBean))
+	_, err = beanUnmarshal([]byte(rawBean))
 	if err != nil {
 		t.Errorf("Error unmarshalling: %v\n", err)
 	}

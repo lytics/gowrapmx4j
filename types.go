@@ -45,10 +45,10 @@ type MX4JData interface {
 // Optional functions can be assigned to the MX4JMetric to be run on the underlying
 // MX4JData type.
 type MX4JMetric struct {
-	HumanName  string
-	ObjectName string
-	Format     string
-	Attribute  string
+	HumanName  string // Name only used by Homo Sapiens for sanity
+	ObjectName string // JMX specific path to query
+	Format     string // JMX Data type
+	Attribute  string // Field of interest under the ObjectName
 	ValFunc    func(MX4JData) (map[string]interface{}, error)
 	MetricFunc func(MX4JData, string)
 	Data       MX4JData
