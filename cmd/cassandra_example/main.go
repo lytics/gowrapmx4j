@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	mx4j          gowrapmx4j.MX4J
+	mx4j          gowrapmx4j.MX4JService
 	host          string
 	port          string
 	loglvl        string
@@ -25,7 +25,7 @@ var (
 
 // Query all registered MX4J endpoints and compose their data into the MX4JMetric
 // array or return error
-func QueryMX4J(mx4j gowrapmx4j.MX4J) (*[]gowrapmx4j.MX4JMetric, error) {
+func QueryMX4J(mx4j gowrapmx4j.MX4JService) (*[]gowrapmx4j.MX4JMetric, error) {
 	reg := gowrapmx4j.RegistryGetAll()
 
 	for _, mm := range reg {
@@ -165,7 +165,7 @@ func main() {
 	//go LogToWriter(metrics.DefaultRegistry, time.Second*time.Duration(queryInterval), mlog, gprefix, stop)
 
 	log.Infof("Initializing Cassandra mx4j status endpoint")
-	mx4j = gowrapmx4j.MX4J{Host: host, Port: port}
+	mx4j = gowrapmx4j.MX4JService{Host: host, Port: port}
 	mx4j.Init()
 
 	ll, err := log.ParseLevel(loglvl)
