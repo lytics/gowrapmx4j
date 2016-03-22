@@ -9,20 +9,20 @@ import (
 )
 
 //Struct representing MX4J service address information to query against
-type MX4J struct {
+type MX4JService struct {
 	Host     string
 	Port     string
 	hostAddr string
 }
 
-func (m *MX4J) Init() {
+func (m *MX4JService) Init() {
 	m.hostAddr = fmt.Sprintf("http://%s:%s/", m.Host, m.Port)
 }
 
 // Queries MX4J to get an attribute's data, returns Bean struct or error
 // equivalent to http://hostname:port/getattribute?queryargs...
 // eg: "http://localhost:8081/getattribute?objectname=org.apache.cassandra.metrics:type=ColumnFamily,keyspace=yourkeyspace,scope=node,name=ReadLatency&format=array&attribute=Max&template=identity"
-func (m MX4J) QueryGetAttributes(objectname, format, attribute string) (*Bean, error) {
+func (m MX4JService) QueryGetAttributes(objectname, format, attribute string) (*Bean, error) {
 	query := fmt.Sprintf("getattribute?objectname=%s&format=%s&attribute=%s&template=identity", objectname, format, attribute) //template?
 	fullQuery := m.hostAddr + query
 	log.Debug(fullQuery)
@@ -38,7 +38,7 @@ func (m MX4J) QueryGetAttributes(objectname, format, attribute string) (*Bean, e
 // MX4JData interface requires the QueryMX4J() which makes http request to MX4J
 // to extract data given the type implmenting the interface.
 type MX4JData interface {
-	QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error)
+	QueryMX4J(m MX4JService, mm MX4JMetric) (MX4JData, error)
 }
 
 // MX4JMetrics assists in deriving information from the extracted MX4JData structs
@@ -76,7 +76,7 @@ func (b Bean) AttributeMap() map[string]MX4JAttribute {
 	return attrMap
 }
 
-func (b Bean) QueryMX4J(m MX4J, mm MX4JMetric) (MX4JData, error) {
+func (b Bean) QueryMX4J(m MX4JService, mm MX4JMetric) (MX4JData, error) {
 	query := fmt.Sprintf("mbean?objectname=%s&template=identity", mm.ObjectName)
 	fullQuery := m.hostAddr + query
 	log.Debug(fullQuery)

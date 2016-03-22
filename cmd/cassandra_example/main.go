@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	mx4j          gowrapmx4j.MX4J
+	mx4j          gowrapmx4j.MX4JService
 	host          string
 	port          string
 	loglvl        string
@@ -25,7 +25,7 @@ var (
 
 // Query all registered MX4J endpoints and compose their data into the MX4JMetric
 // array or return error
-func QueryMX4J(mx4j gowrapmx4j.MX4J) (*[]gowrapmx4j.MX4JMetric, error) {
+func QueryMX4J(mx4j gowrapmx4j.MX4JService) (*[]gowrapmx4j.MX4JMetric, error) {
 	reg := gowrapmx4j.RegistryGetAll()
 
 	for _, mm := range reg {
@@ -165,7 +165,7 @@ func main() {
 	//go LogToWriter(metrics.DefaultRegistry, time.Second*time.Duration(queryInterval), mlog, gprefix, stop)
 
 	log.Infof("Initializing Cassandra mx4j status endpoint")
-	mx4j = gowrapmx4j.MX4J{Host: host, Port: port}
+	mx4j = gowrapmx4j.MX4JService{Host: host, Port: port}
 	mx4j.Init()
 
 	ll, err := log.ParseLevel(loglvl)
@@ -175,31 +175,31 @@ func main() {
 		log.SetLevel(ll)
 	}
 
+	// TODO: Improve the initialization of the Registry
+	// TODO: Multiple definitions of the NewMX4JMetric function is confusing and un-go like
+
 	// Query singlenton values from MX4J
-	mm := gowrapmx4j.NewMX4JMetric("compactions.active", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "ActiveCount")
-	mm.ValFunc = gowrapmx4j.DistillAttribute
+	mm := gowrapmx4j.MX4JMetric{HumanName: "compactions.active", ObjectName: "org.apache.cassandra.internal:type=CompactionExecutor",
+		Format: "array", Attribute: "ActiveCount", ValFunc: gowrapmx4j.DistillAttribute}
 	gowrapmx4j.RegistrySet(mm, nil)
 
-	mm = gowrapmx4j.NewMX4JMetric("compactions.pending", "org.apache.cassandra.internal:type=CompactionExecutor", "array", "PendingTasks")
-	mm.ValFunc = gowrapmx4j.DistillAttribute
+	mm = gowrapmx4j.MX4JMetric{HumanName: "compactions.pending", ObjectName: "org.apache.cassandra.internal:type=CompactionExecutor",
+		Format: "array", Attribute: "PendingTasks", ValFunc: gowrapmx4j.DistillAttribute}
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	//OR
 	// Query MBean attribute maps
-	mname := "NodeStatusBinary"
-	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.net:type=FailureDetector", "", "")
-	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
+	mm = gowrapmx4j.MX4JMetric{HumanName: "NodeStatusBinary", ObjectName: "org.apache.cassandra.net:type=FailureDetector",
+		ValFunc: gowrapmx4j.DistillAttributeTypes}
 	gowrapmx4j.RegistrySet(mm, nil)
 
-	mname = "CompactionExecutor"
-	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.internal:type=CompactionExecutor", "", "")
-	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
+	mm = gowrapmx4j.MX4JMetric{HumanName: "CompactionExecutor", ObjectName: "org.apache.cassandra.internal:type=CompactionExecutor",
+		ValFunc: gowrapmx4j.DistillAttributeTypes}
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Query Cluster information
-	mname = "StorageService"
-	mm = gowrapmx4j.NewMX4JMetric(mname, "org.apache.cassandra.db:type=StorageService", "", "")
-	mm.ValFunc = gowrapmx4j.DistillAttributeTypes
+	mm = gowrapmx4j.MX4JMetric{HumanName: "StorageService", ObjectName: "org.apache.cassandra.db:type=StorageService",
+		ValFunc: gowrapmx4j.DistillAttributeTypes}
 	gowrapmx4j.RegistrySet(mm, nil)
 
 	// Simple run loop to query MX4J
