@@ -1,4 +1,4 @@
-package http
+package cassandra
 
 import (
 	"encoding/json"
@@ -10,11 +10,18 @@ import (
 	"github.com/lytics/gowrapmx4j"
 )
 
-func NodeStatus(hostname string) func(w http.ResponseWriter, r *http.Request) {
+// Http response function extracts the state of the current node given the
+// hostname parameter.
+func HttpNodeStatus(hostname string) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		mjs := make(map[string]interface{})
-		nsb := gowrapmx4j.RegistryGet("NodeStatusBinary")
+		nsb := gowrapmx4j.RegistryGet("NodeStatus")
+		if nsb.Data == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("NodeStatus Metric Data is nil: %#v", nsb), 500)
+			return
+		}
 		metricMap, err := gowrapmx4j.DistillAttributeTypes(nsb.Data)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
