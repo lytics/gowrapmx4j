@@ -10,7 +10,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lytics/gowrapmx4j"
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/lytics/gowrapmx4j/cassandra"
 )
 
 var (
@@ -23,56 +23,10 @@ var (
 	queryInterval int
 )
 
-// Query all registered MX4J endpoints and compose their data into the MX4JMetric
-// array or return error
-func QueryMX4J(mx4j gowrapmx4j.MX4JService) (*[]gowrapmx4j.MX4JMetric, error) {
-	reg := gowrapmx4j.RegistryGetAll()
-
-	for _, mm := range reg {
-		var newData gowrapmx4j.MX4JData
-		var err error
-		data := mm.Data
-		log.Debugf("Metric being queried: %#v", mm)
-
-		// If first time querying endpoint, create data struct
-		if data == nil {
-			newData = gowrapmx4j.Bean{}
-			mx4jData, err := newData.QueryMX4J(mx4j, mm)
-			if err != nil {
-				retErr := fmt.Errorf("QueryMX4J Error: %v%s", newData, err)
-				return nil, retErr
-			}
-			gowrapmx4j.RegistrySet(mm, mx4jData)
-		} else {
-			newData, err = data.QueryMX4J(mx4j, mm)
-			gowrapmx4j.RegistrySet(mm, newData)
-		}
-
-		if mm.MetricFunc != nil && newData != nil {
-			log.Debugf("Metric func running: %s", mm.HumanName)
-			mm.MetricFunc(mm.Data, mm.HumanName)
-		}
-
-		if newData == nil {
-			log.Errorf("No data returned from querying; blanking the metric registries")
-			metrics.DefaultRegistry.UnregisterAll()
-			gowrapmx4j.RegistryFlush()
-		}
-
-		if err != nil {
-			retErr := fmt.Errorf("QueryMX4J Error: %v %s", newData, err)
-			return nil, retErr
-		}
-	}
-
-	updated := gowrapmx4j.RegistryGetAll()
-	return &updated, nil
-}
-
 // Cassandra MX4J status returns all data from the gowrapmx4j.registry
 // in its raw form marshalled into JSON.
 func cassStatus(w http.ResponseWriter, r *http.Request) {
-	metrics, err := QueryMX4J(mx4j)
+	metrics, err := gowrapmx4j.QueryMX4J(mx4j)
 	if err != nil {
 		errString := fmt.Sprintf("cassStatus Error: %#v", err)
 		http.Error(w, errString, http.StatusServiceUnavailable)
@@ -84,34 +38,6 @@ func cassStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "cassStatus: Error marshaling JSON from MX4J data: %v", err)
-	}
-	fmt.Fprintf(w, "%s", js)
-}
-
-// API Endpoint which will execute the optionally specified metric function
-// on the data structure for cleanup.
-func cleanStatus(w http.ResponseWriter, r *http.Request) {
-	metrics := gowrapmx4j.RegistryGetAll()
-
-	mjs := make(map[string]interface{})
-	for _, m := range metrics {
-		if m.ValFunc != nil {
-			log.Infof("%s", m.HumanName)
-			mdata, err := m.ValFunc(m.Data)
-			if err != nil {
-				log.Errorf("Error running value function for %s: %v", m.HumanName, err)
-				continue
-			}
-			mjs[m.HumanName] = mdata
-		} else {
-			mjs[m.HumanName] = m.Data
-		}
-	}
-
-	js, err := json.Marshal(mjs)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		http.Error(w, fmt.Sprintf("CleanFuncAPI: Error marshaling JSON from MX4J data: %#v", err), 500)
 	}
 	fmt.Fprintf(w, "%s", js)
 }
@@ -206,7 +132,7 @@ func main() {
 	go func() {
 		for {
 			log.Debug("Querying MX4J")
-			_, err := QueryMX4J(mx4j)
+			_, err := gowrapmx4j.QueryMX4J(mx4j)
 			if err != nil {
 				log.Errorf("Error Querying MX4J: %v", err)
 			}
@@ -215,7 +141,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/", cassStatus)
-	http.HandleFunc("/clean", cleanStatus)
-	http.HandleFunc("/status", nodeStatus)
+	http.HandleFunc("/clean", cassandra.HttpCleanStatus)
+	//http.HandleFunc("/status", nodeStatus)
 	http.ListenAndServe(":8082", nil)
 }
