@@ -48,7 +48,7 @@ func parseMap(s string) map[string]interface{} {
 	return strMap
 }
 
-// Cleanly extracts the name and value from a singleton MX4J Bean struct
+// DistillAttribute cleanly extracts the name and value from a singleton MX4J Bean struct
 func DistillAttribute(mb MX4JData) (map[string]interface{}, error) {
 	dataMap := make(map[string]interface{})
 	switch mb.(type) {
@@ -61,8 +61,9 @@ func DistillAttribute(mb MX4JData) (map[string]interface{}, error) {
 	}
 }
 
-// ExtractAttributes parses the queried MX4JMetric endpoints and yields
+// DistillAttributes parses the queried MX4JMetric endpoints and yields
 // a map of metric fields to their original string values.
+//TODO: Return an actual error
 func DistillAttributes(mb MX4JData) map[string]string {
 	data := make(map[string]string)
 
@@ -82,7 +83,7 @@ func DistillAttributes(mb MX4JData) map[string]string {
 	}
 }
 
-// ExtractAtributeTypes parses Bean struct []Attributes data and returns
+// DistillAtributeTypes parses Bean struct []Attributes data and returns
 // map parsed from attribute information which can be marsahlled into JSON.
 func DistillAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
 	attributes := make(map[string]interface{})
@@ -111,6 +112,6 @@ func DistillAttributeTypes(mb MX4JData) (map[string]interface{}, error) {
 		}
 		return attributes, nil
 	default:
-		return nil, errors.New("gowrapmx4j.ExtractAttributeTypes() Error: attribute type not handled")
+		return nil, fmt.Errorf("gowrapmx4j.DistillAttributeTypes() Error: attribute type[%T] not handled", mb)
 	}
 }
