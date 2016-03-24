@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"regexp"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -38,41 +37,6 @@ func cassStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "cassStatus: Error marshaling JSON from MX4J data: %v", err)
-	}
-	fmt.Fprintf(w, "%s", js)
-}
-
-func nodeStatus(w http.ResponseWriter, r *http.Request) {
-	mjs := make(map[string]interface{})
-	nsb := gowrapmx4j.RegistryGet("NodeStatusBinary")
-	metricMap, err := gowrapmx4j.DistillAttributeTypes(nsb.Data)
-	if err != nil {
-		mjs["ERR"] = "Error extracting node status data"
-		mjs["error"] = fmt.Sprintf("%v", err)
-	}
-
-	states, ok := metricMap["SimpleStates"]
-	log.Debugf("%#v", states)
-	if !ok {
-		mjs["ERR"] = "Error extracting node status data"
-		mjs["error"] = "Key: SimpleStates not in data map"
-	}
-	ss := states.(map[string]interface{})
-
-	var hostKey string
-	for k, v := range ss {
-		log.Debug("Nodestatus: %s %#v", k, v)
-		hostMatch := regexp.MustCompile(fmt.Sprintf(".*%s.*", hostnameid))
-		if hostMatch.MatchString(k) {
-			hostKey = k
-		}
-	}
-
-	mjs[hostKey] = ss[hostKey]
-	js, err := json.Marshal(mjs)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		http.Error(w, fmt.Sprintf("nodeStatus: Error marshaling JSON from MX4J data: %#v", err), 500)
 	}
 	fmt.Fprintf(w, "%s", js)
 }
@@ -115,7 +79,8 @@ func main() {
 
 	//OR
 	// Query MBean attribute maps
-	mm = gowrapmx4j.MX4JMetric{HumanName: "NodeStatusBinary", ObjectName: "org.apache.cassandra.net:type=FailureDetector",
+	// NodeStatus must be specified in order for the HttpNodeStatus function to be called!(Needs better docs)
+	mm = gowrapmx4j.MX4JMetric{HumanName: "NodeStatus", ObjectName: "org.apache.cassandra.net:type=FailureDetector",
 		ValFunc: gowrapmx4j.DistillAttributeTypes}
 	gowrapmx4j.RegistrySet(mm, nil)
 
@@ -140,8 +105,9 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/", cassStatus)
-	http.HandleFunc("/clean", cassandra.HttpCleanStatus)
-	//http.HandleFunc("/status", nodeStatus)
+	http.HandleFunc("/", gowrapmx4j.HttpRegistryRaw)
+	http.HandleFunc("/clean", gowrapmx4j.HttpRegistryProcessed)
+	ns := cassandra.HttpNodeStatus(hostnameid)
+	http.HandleFunc("/status", ns)
 	http.ListenAndServe(":8082", nil)
 }

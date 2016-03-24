@@ -12,6 +12,13 @@ import (
 
 // Http response function extracts the state of the current node given the
 // hostname parameter.
+// Requires that "NodeStatus" metric be registered as below and in the cassandra
+// entry point example.
+/*
+  mm := gowrapmx4j.MX4JMetric{HumanName: "NodeStatus", ObjectName: "org.apache.cassandra.net:type=FailureDetector",
+		ValFunc: gowrapmx4j.DistillAttributeTypes}
+	gowrapmx4j.RegistrySet(mm, nil)
+*/
 func HttpNodeStatus(hostname string) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
