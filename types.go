@@ -32,7 +32,7 @@ func (m MX4JService) QueryGetAttributes(objectname, format, attribute string) (*
 		log.Errorf("Failed to get response from mx4j: %#v", err)
 		return nil, err
 	}
-	return getBeans(httpResp.Body, beanUnmarshal)
+	return readHttp(httpResp.Body, beanUnmarshal)
 }
 
 // MX4JData interface requires the QueryMX4J() which makes http request to MX4J
@@ -88,7 +88,7 @@ func (b Bean) QueryMX4J(m MX4JService, mm MX4JMetric) (MX4JData, error) {
 	}
 	defer httpResp.Body.Close()
 
-	mb, err := getBeans(httpResp.Body, beanUnmarshal)
+	mb, err := readHttp(httpResp.Body, beanUnmarshal)
 	if err != nil {
 		log.Errorf("Error getting attribute: %s %s %s", mm.ObjectName, mm.Format, mm.Attribute)
 		return nil, err

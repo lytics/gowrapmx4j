@@ -1,12 +1,39 @@
 package gowrapmx4j
 
 import (
+	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
 )
+
+//Handles reading of the http.Body and passes bytes of io.ReadCloser
+//to getAttrUnmarshal() for unmarshaling XML.
+func readHttp(httpBody io.ReadCloser, unmarshalFunc func([]byte) (*Bean, error)) (*Bean, error) {
+	xmlBytes, err := ioutil.ReadAll(httpBody)
+	if err != nil {
+		log.Errorf("Failed to read http response: %#v", err)
+		return nil, err
+	}
+
+	return unmarshalFunc(xmlBytes)
+}
+
+//Unmarshals XML and returns an Bean struct
+func beanUnmarshal(xmlBytes []byte) (*Bean, error) {
+	var mb Bean
+	err := xml.Unmarshal([]byte(xmlBytes), &mb)
+	if err != nil {
+		log.Errorf("Failed to Unmarshal xml: %#v", err)
+		log.Errorf("Bytes failed to be unmarshalled: \n%s", xmlBytes)
+		return nil, err
+	}
+	return &mb, nil
+}
 
 /*From Google: Distill eventually came to mean any process in which the essence of something is revealed. If you take notes at a lecture and then turn them into an essay for your professor, you're distilling your notes into something more pure and exact. At least, that's what you hope you're doing.
 
