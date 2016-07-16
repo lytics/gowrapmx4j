@@ -9,7 +9,7 @@ import (
 var registry = make(map[string]MX4JMetric)
 var reglock = &sync.RWMutex{}
 
-// Set a value in the Registry keyed to its Human Name
+// RegistrySet a value in the Registry keyed to its Human Name
 func RegistrySet(mm MX4JMetric, mb MX4JData) {
 	reglock.Lock()
 	defer reglock.Unlock()
@@ -19,7 +19,7 @@ func RegistrySet(mm MX4JMetric, mb MX4JData) {
 	registry[mm.HumanName] = mm
 }
 
-// Return a single MX4JMetric keyed by its human readable name
+// RegistryGet return a single MX4JMetric keyed by its human readable name
 func RegistryGet(humanName string) MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
@@ -27,7 +27,7 @@ func RegistryGet(humanName string) MX4JMetric {
 	return registry[humanName]
 }
 
-// Return all data points in the Registry
+// RegistryBeans return all data points in the Registry
 func RegistryBeans() map[string]MX4JData {
 	reglock.RLock()
 	defer reglock.RUnlock()
@@ -39,7 +39,8 @@ func RegistryBeans() map[string]MX4JData {
 	return beans
 }
 
-// Return a slice of all MX4JMetrics currently registered
+// RegistryGetAll returns a slice of all MX4JMetrics currently
+// registered or nil if failure
 func RegistryGetAll() []MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
@@ -50,7 +51,7 @@ func RegistryGetAll() []MX4JMetric {
 	return metrics
 }
 
-// Return a map of MX4JMetric structs keyed by their human readable name field.
+// RegistryGetHRMap return a map of MX4JMetric structs keyed by their human readable name field.
 func RegistryGetHRMap() map[string]MX4JMetric {
 	reglock.RLock()
 	defer reglock.RUnlock()
@@ -62,7 +63,7 @@ func RegistryGetHRMap() map[string]MX4JMetric {
 	return metrics
 }
 
-// Purge the gowrapmx4j data registry
+// RegistryPurge the gowrapmx4j data registry
 // Primarily for use in the case where connection to MX4J has been lost,
 // and reporting stale data is unhelpful. Endpoints will need to be re-registered
 // in order for data collection to continue.
