@@ -105,8 +105,8 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/", gowrapmx4j.HttpRegistryRaw)
-	http.HandleFunc("/clean", gowrapmx4j.HttpRegistryProcessed)
+	http.HandleFunc("/", gowrapmx4j.HTTPRegistryRaw)
+	http.HandleFunc("/clean", gowrapmx4j.HTTPRegistryProcessed)
 	ns := cassandra.HttpNodeStatus(hostnameid)
 	http.HandleFunc("/status", ns)
 	http.ListenAndServe(":8082", nil)
