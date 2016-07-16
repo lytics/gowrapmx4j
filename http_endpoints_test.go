@@ -23,3 +23,17 @@ func TestContextGet(t *testing.T) {
 		t.Errorf("Registry metric set was not returned")
 	}
 }
+
+func TestContextGetFailure(t *testing.T) {
+	to := time.Second * 0
+	ctx, _ := context.WithTimeout(context.Background(), to)
+
+	mm := NewMX4JMetric("NodeStatus", "org.apache.cassandra.net:type=FailureDetector", "map", "SimpleStates")
+	RegistrySet(mm, nil)
+
+	m := HTTPRegistryGetAll(ctx)
+
+	if m != nil {
+		t.Errorf("metrics should be nil")
+	}
+}
